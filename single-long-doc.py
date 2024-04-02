@@ -27,3 +27,18 @@ vectordb = Chroma.from_documents(
     embedding=OpenAIEmbeddings(),
     persist_directory='./data'
 )
+vectordb.persist()
+
+# we create the RetrievalQA chain, passing in the vectorstore as our source of
+# information. Behind the scenes, this will only retrieve the relevant
+# data from the vectorstore, based on the semantic similiarity between
+# the prompt and the stored information
+qa_chain = RetrievalQA.from_chain_type(
+    llm=OpenAI(),
+    retriever=vectordb.as_retriever(search_kwargs={'k': 3}),
+    return_source_documents=True
+)
+
+# we can now exectute queries againse our Q&A chain
+result = qa_chain.invoke({'query': 'Who is the CV about?'})
+print(result['result'])
